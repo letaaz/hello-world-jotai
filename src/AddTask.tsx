@@ -1,33 +1,36 @@
-import { ChangeEventHandler, FormEventHandler } from "react";
-import { taskAtom, taskListAtom } from "./atom";
-import { useAtom } from "jotai";
+import { FormEventHandler, useEffect } from "react";
+import { TaskAtom, taskAtom, taskListAtom } from "./atom";
+import { useAtom, useSetAtom } from "jotai";
 
-// type AddTaskProps = {
-//   setTaskList: (task: string) => void;
-// };
+const ADD_TASK_INPUT_ID = "new_task";
 
 function AddTask() {
-  const [task, setTask] = useAtom(taskAtom);
-  const [, setTaskList] = useAtom(taskListAtom);
+  const [, setTask] = useAtom(taskAtom);
+  const setTaskList = useSetAtom(taskListAtom);
 
-  const handleOnChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    const value = event.currentTarget.value;
-    const taskId = `${value.toLowerCase}-${Math.random() * 100}`;
-    setTask({
-      id: taskId,
-      label: value,
-      isComplete: false,
-    });
-  };
+  useEffect(() => {
+    console.warn("rendering AddTask");
+  });
 
   const handleOnSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    // Vérifier si la tâche est non nulle (pas vide)
-    if (task) {
-      // Ajoutez la tâche à la liste de tâche
-      setTaskList((taskLists) => [...taskLists, task]);
-      console.warn("Ajoutez la tâche");
+    const input = document.getElementById(
+      ADD_TASK_INPUT_ID
+    ) as HTMLInputElement;
+    const label = input !== null ? input.value : "";
+    if (!label) {
+      return;
     }
+
+    const id = `${label.toLowerCase()}-${Math.random() * 1000000}`; // TODO : à optimiser
+    const task: TaskAtom = {
+      id,
+      label,
+      isComplete: false,
+    };
+
+    setTask(task);
+    setTaskList((taskLists) => [...taskLists, task]);
   };
 
   return (
@@ -36,11 +39,9 @@ function AddTask() {
 
       <input
         type="text"
-        id="new_task"
+        id={ADD_TASK_INPUT_ID}
         name="new_task"
         placeholder=""
-        value={task.label ?? ""}
-        onChange={handleOnChange}
       />
     </form>
   );
